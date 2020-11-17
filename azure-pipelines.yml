@@ -26,39 +26,38 @@ stages:
     variables:
     - group: Release
     steps:
-- task: Maven@3
-  displayName: 'Maven pom.xml'
-  inputs:
-    options: '-DskipITs --settings ./maven/settings.xml'
-    publishJUnitResults: false
-- task: CopyFiles@2
-  displayName: Copy WAR file to staging directory
-  inputs:
-    sourceFolder: '$(build.sourcesdirectory)'
-    contents: |
-      target/myshuttledev*.war
-      *.sql
-    targetFolder: '$(build.artifactstagingdirectory)'
-- task: Docker@2
-  displayName: Build and push Java container image to registry
-  inputs:
-    command: buildAndPush
-    buildContext: '$(build.artifactstagingdirectory)'
-    repository: $(webRepository)
-    dockerfile: $(dockerfilePath)
-    containerRegistry: 'Container Registry Connection'
-    tags: |
-      $(tag)
-
-- task: AzureMysqlDeployment@1
-  displayName: Run MySQL initialization script
-  inputs:
-    azureSubscription: 'Azure Connection'
-    serverName: '$(MySqlServer).mysql.database.azure.com'
-    databaseName: 'alm'
-    sqlUsername: $(MySqlUserName)@$(MySqlServer)
-    sqlPassword: $(MySqlPassword)
-    sqlFile: '$(Build.SourcesDirectory)/CreateMYSQLDB.sql'
+    - task: Maven@3
+      displayName: 'Maven pom.xml'
+      inputs:
+        options: '-DskipITs --settings ./maven/settings.xml'
+        publishJUnitResults: false
+    - task: CopyFiles@2
+      displayName: Copy WAR file to staging directory
+      inputs:
+        sourceFolder: '$(build.sourcesdirectory)'
+        contents: |
+          target/myshuttledev*.war
+          *.sql
+        targetFolder: '$(build.artifactstagingdirectory)'
+    - task: Docker@2
+      displayName: Build and push Java container image to registry
+      inputs:
+        command: buildAndPush
+        buildContext: '$(build.artifactstagingdirectory)'
+        repository: $(webRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: 'Container Registry Connection'
+        tags: |
+          $(tag)
+    - task: AzureMysqlDeployment@1
+      displayName: Run MySQL initialization script
+      inputs:
+        azureSubscription: 'Azure Connection'
+        serverName: '$(MySqlServer).mysql.database.azure.com'
+        databaseName: 'alm'
+        sqlUsername: $(MySqlUserName)@$(MySqlServer)
+        sqlPassword: $(MySqlPassword)
+        sqlFile: '$(Build.SourcesDirectory)/CreateMYSQLDB.sql'
 
 - stage: Deploy
   displayName: 'Deploy Web App'
@@ -75,29 +74,27 @@ stages:
       runOnce:
         deploy:
           steps:
-
-- task: AzureWebAppContainer@1
-  displayName: Update the web app with the new container
-  inputs:
-    appName: $(WebAppName)
-    azureSubscription: 'Azure Connection'
-    imageName: $(RegistryName)/$(webRepository):$(build.buildId)
-
-- task: AzureAppServiceSettings@1
-  displayName: Update web app connection string
-  inputs:
-    azureSubscription: 'Azure Connection'
-    appName: $(WebAppName)
-    resourceGroupName: 'java-containers-cicd-rg'
-    connectionStrings: |
-      [
-        {
-          "name": "MyShuttleDb",
-          "value": "jdbc:mysql://$(MySqlServer).mysql.database.azure.com:3306/alm?useSSL=true&requireSSL=false&autoReconnect=true&user=$(MySqlUserName)@$(MySqlServer)&password=$(MySqlPassword)",
-          "type": "MySql",
-          "slotSetting": false
-        }
-      ]
+          - task: AzureWebAppContainer@1
+            displayName: Update the web app with the new container
+            inputs:
+              appName: $(WebAppName)
+              azureSubscription: 'Azure Connection'
+              imageName: $(RegistryName)/$(webRepository):$(build.buildId)
+          - task: AzureAppServiceSettings@1
+            displayName: Update web app connection string
+            inputs:
+              azureSubscription: 'Azure Connection'
+              appName: $(WebAppName)
+              resourceGroupName: 'java-containers-cicd-rg'
+              connectionStrings: |
+                [
+                  {
+                    "name": "MyShuttleDb",
+                    "value": "jdbc:mysql://$(MySqlServer).mysql.database.azure.com:3306/alm?useSSL=true&requireSSL=false&autoReconnect=true&user=$(MySqlUserName)@$(MySqlServer)&password=$(MySqlPassword)",
+                    "type": "MySql",
+                    "slotSetting": false
+                  }
+                ]
 
 #ori
 #pool:
