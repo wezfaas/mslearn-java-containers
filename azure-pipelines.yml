@@ -52,7 +52,7 @@ stages:
     - task: AzureMysqlDeployment@1
       displayName: Run MySQL initialization script
       inputs:
-        azureSubscription: 'Azure Connection'
+        azureSubscription: 'jpe0sc'
         serverName: '$(MySqlServer).mysql.database.azure.com'
         databaseName: 'alm'
         sqlUsername: $(MySqlUserName)@$(MySqlServer)
@@ -78,14 +78,14 @@ stages:
             displayName: Update the web app with the new container
             inputs:
               appName: $(WebAppName)
-              azureSubscription: 'Azure Connection'
+              azureSubscription: 'jpe0sc'
               imageName: $(RegistryName)/$(webRepository):$(build.buildId)
           - task: AzureAppServiceSettings@1
             displayName: Update web app connection string
             inputs:
-              azureSubscription: 'Azure Connection'
+              azureSubscription: 'jpe0sc'
               appName: $(WebAppName)
-              resourceGroupName: 'java-containers-cicd-rg'
+              resourceGroupName: 'jpe_rg'
               connectionStrings: |
                 [
                   {
